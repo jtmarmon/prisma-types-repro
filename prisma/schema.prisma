@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  UserID     Int        @id(map: "PK_tblUser") @default(autoincrement())
+  UserName   String?    @unique(map: "IX_tblUser_1") @db.NVarChar(256)
+  FirstName  String?    @db.NVarChar(25)
+  MiddleName String?    @db.NVarChar(25)
+  LastName   String?    @db.NVarChar(25)
+  UserRole   UserRole[] @relation("UserRoleTotblUser")
+
+  @@index([UserID, FirstName], map: "IX_tblUser_ByFirstName")
+  @@index([UserID, LastName], map: "IX_tblUser_ByLastName")
+  @@map("tblUser")
+}
+
+model UserRole {
+  UserId  Int
+  RoleId  Int
+  Role    Role @relation(fields: [RoleId], references: [Id], onUpdate: NoAction, map: "FK_UserRole_RoleId_To_Role_Id")
+  tblUser User @relation("UserRoleTotblUser", fields: [UserId], references: [UserID], onUpdate: NoAction, map: "FK_UserRole_UserId_To_User_Id")
+
+  @@id([UserId, RoleId], map: "PK_UserRole_UserId_RoleId")
+}
+
+model Role {
+  Id       Int        @id(map: "PK_Role_Id") @default(autoincrement())
+  Name     String     @unique(map: "UQ_Role_Name") @db.NVarChar(255)
+  UserRole UserRole[]
+}
+
